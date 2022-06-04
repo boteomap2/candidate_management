@@ -1,10 +1,30 @@
 package fa.academy.entity;
 
 import fa.academy.utils.Enum.CandidateType;
+import fa.academy.utils.common.TablePrintable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Experience extends Candidate {
+
+    private static List<String> columns = new ArrayList<>(
+        Arrays.asList(
+            "Id",
+            "FullName",
+            "Birthday",
+            "Phone",
+            "Email",
+            "CandidateType",
+            "expInYear",
+            "ProSkill",
+            "CERF-ID",
+            "CERF-Name",
+            "CERF-Rank",
+            "CERF-Date"
+        )
+    );
 
     private int expInYear;
     private String proSkill;
@@ -101,5 +121,57 @@ public class Experience extends Candidate {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public List<String> getColumns() {
+        return columns;
+    }
+
+    @Override
+    public List<ArrayList<String>> getRecordData() {
+        List<ArrayList<String>> recordList = new ArrayList<>();
+        ArrayList<String> record;
+        int i = 0;
+
+        do {
+            record = new ArrayList<>();
+            if (i != 0) {
+                record.addAll(
+                    Arrays.asList(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    )
+                );
+            } else {
+                record.add(getCandidateId());
+                record.add(getFullname());
+                record.add(getBirthday().toString());
+                record.add(getPhone());
+                record.add(getEmail());
+                record.add(getCandidateType().toString());
+                record.add(Integer.toString(expInYear));
+                record.add(proSkill);
+            }
+            if (certificationList == null) break;
+            record.add(certificationList.get(i).getCertificationId());
+            record.add(certificationList.get(i).getCertificationName());
+            record.add(certificationList.get(i).getCertificationRank());
+            record.add(
+                certificationList.get(i).getCertificationDate().toString()
+            );
+
+            recordList.add(record);
+            if (++i == certificationList.size()) return recordList;
+        } while (true);
+        record.addAll(Arrays.asList(null, null, null, null));
+        recordList.add(record);
+        return recordList;
     }
 }

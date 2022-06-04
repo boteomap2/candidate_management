@@ -13,13 +13,13 @@ import fa.academy.entity.Intern;
 import fa.academy.utils.Enum.CandidateType;
 import fa.academy.utils.TablePrinter;
 import fa.academy.utils.Validator;
-import java.util.ArrayList;
+import java.util.List;
 
 public class FindController {
 
-    private ArrayList<Experience> experienceList;
-    private ArrayList<Fresher> fresherList;
-    private ArrayList<Intern> internList;
+    private List<Experience> experienceList;
+    private List<Fresher> fresherList;
+    private List<Intern> internList;
 
     public Candidate findCandidate() {
         System.out.println("Enter 'X' or 'x' to back to Main menu.");
@@ -52,18 +52,19 @@ public class FindController {
             Experience experience = ExperienceDaoImpl
                 .getInstance()
                 .find(candidate);
-            TablePrinter<Experience> ePrinter = new TablePrinter<>(experience);
-            ePrinter.printToTable();
+
+            TablePrinter tablePrinter = new TablePrinter(experience);
+            tablePrinter.print();
             return experience;
         } else if (candidateType == CandidateType.FRESHER) {
             Fresher fresher = FresherDaoImpl.getInstance().find(candidate);
-            TablePrinter<Fresher> ePrinter = new TablePrinter<>(fresher);
-            ePrinter.printToTable();
+            TablePrinter tablePrinter = new TablePrinter(fresher);
+            tablePrinter.print();
             return fresher;
         } else {
             Intern intern = InternDaoImpl.getInstance().find(candidate);
-            TablePrinter<Intern> ePrinter = new TablePrinter<>(intern);
-            ePrinter.printToTable();
+            TablePrinter tablePrinter = new TablePrinter(intern);
+            tablePrinter.print();
             return intern;
         }
     }
@@ -72,25 +73,23 @@ public class FindController {
         this.experienceList = ExperienceDaoImpl.getInstance().findAll();
         this.fresherList = FresherDaoImpl.getInstance().findAll();
         this.internList = InternDaoImpl.getInstance().findAll();
-        TablePrinter<Experience> ePrinter = new TablePrinter<>(
-            this.experienceList
-        );
-        TablePrinter<Fresher> fPrinter = new TablePrinter<>(this.fresherList);
-        TablePrinter<Intern> iPrinter = new TablePrinter<>(this.internList);
 
+        TablePrinter ePrinter = new TablePrinter(this.experienceList);
+        TablePrinter fPrinter = new TablePrinter(this.fresherList);
+        TablePrinter iPrinter = new TablePrinter(this.internList);
         System.out.println("\nEXPERIENCE");
         if (this.experienceList == null) {
             System.out.println("EXPERIENCE table is emply.");
-        } else ePrinter.printToTable();
+        } else ePrinter.print();
 
         System.out.println("\nFRESHER");
         if (this.fresherList == null) {
             System.out.println("FRESHER table is emply.");
-        } else fPrinter.printToTable();
+        } else fPrinter.print();
 
         System.out.println("\nINTERN");
         if (this.internList == null) {
             System.out.println("INTERN table is emply.");
-        } else iPrinter.printToTable();
+        } else iPrinter.print();
     }
 }

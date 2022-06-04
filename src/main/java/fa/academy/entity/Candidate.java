@@ -1,10 +1,12 @@
 package fa.academy.entity;
 
 import fa.academy.utils.Enum.CandidateType;
+import fa.academy.utils.common.TablePrintable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
-public class Candidate {
+public class Candidate implements TablePrintable {
 
     private String candidateId;
     private String fullname;
@@ -117,5 +119,17 @@ public class Candidate {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public List<String> getColumns() {
+        /* Do no thing */
+        return null;
+    }
+
+    @Override
+    public List<ArrayList<String>> getRecordData() {
+        /* Do no thing */
+        return null;
     }
 }
