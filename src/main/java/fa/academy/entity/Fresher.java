@@ -1,7 +1,6 @@
 package fa.academy.entity;
 
 import fa.academy.utils.Enum.CandidateType;
-import fa.academy.utils.common.TablePrintable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;

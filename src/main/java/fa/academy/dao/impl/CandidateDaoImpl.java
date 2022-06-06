@@ -6,6 +6,7 @@ import fa.academy.dao.Dao;
 import fa.academy.entity.Candidate;
 import fa.academy.entity.Certification;
 import fa.academy.utils.Enum.CandidateType;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -19,6 +20,12 @@ public class CandidateDaoImpl implements Dao<Candidate> {
 
     private static final String DELETE_BY_ID =
         "DELETE FROM Candidate WHERE CandidateID = ?";
+
+    private static final String UPDATE_BY_ID =
+        "UPDATE Candidate SET FullName = ?, Birthday = ?, Phone = ?, Email = ? WHERE CandidateID = ?";
+
+    private static final String GET_LAST_ID =
+        "SELECT TOP(1) CandidateID FROM Candidate ORDER BY CandidateID DESC";
 
     private static final CandidateDaoImpl C_DAO_IMPL = new CandidateDaoImpl();
 
@@ -104,13 +111,40 @@ public class CandidateDaoImpl implements Dao<Candidate> {
     }
 
     @Override
-    public void save(Candidate t) {
+    public boolean save(Candidate t) {
         // TODO Auto-generated method stub
-
+        return false;
     }
 
     @Override
-    public void update(Candidate t) {}
+    public boolean update(Candidate candidate) {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(UPDATE_BY_ID)
+        ) {
+            pst.setString(1, candidate.getFullname());
+            pst.setDate(2, Date.valueOf(candidate.getBirthday()));
+            pst.setString(3, candidate.getPhone());
+            pst.setString(4, candidate.getEmail());
+            pst.setString(5, candidate.getCandidateId());
+
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println(
+                    "Something errors, cann't insert into Candidate Table"
+                );
+                return false;
+            }
+            System.out.println(
+                "Inserted " + count + " row into Candidate Table"
+            );
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     @Override
     public void delete(String id) {
@@ -128,6 +162,23 @@ public class CandidateDaoImpl implements Dao<Candidate> {
             System.out.println("The candidate with ID: " + id + " is deleted");
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public String getLastId() {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(GET_LAST_ID);
+            ResultSet rs = pst.executeQuery();
+        ) {
+            if (!rs.next()) {
+                return "CDD000";
+            }
+
+            return rs.getString("CandidateID");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

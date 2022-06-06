@@ -16,6 +16,9 @@ public class ExperienceDaoImpl implements Dao<Experience> {
 
     private static final String FIND_ALL = "SELECT * FROM Experience";
 
+    private static final String UPDATE_BY_ID =
+        "UPDATE Experience SET ExpInYear = ?, ProSkill = ? WHERE ExperienceID = ?";
+
     private static final ExperienceDaoImpl E_DAO_IMPL = new ExperienceDaoImpl();
     private CandidateDaoImpl cDaoImpl = CandidateDaoImpl.getInstance();
 
@@ -89,7 +92,7 @@ public class ExperienceDaoImpl implements Dao<Experience> {
 
             while (rs.next()) {
                 String id = rs.getString("ExperienceID");
-                Candidate candidate = CandidateDaoImpl.getInstance().find(id);
+                Candidate candidate = cDaoImpl.find(id);
                 Experience experience = new Experience(candidate);
                 experience.setExpInYear(rs.getInt("ExpInYear"));
                 experience.setProSkill(rs.getString("ProSkill"));
@@ -105,15 +108,38 @@ public class ExperienceDaoImpl implements Dao<Experience> {
     }
 
     @Override
-    public void save(Experience t) {
+    public boolean save(Experience t) {
         // TODO Auto-generated method stub
-
+        return false;
     }
 
     @Override
-    public void update(Experience t) {
-        // TODO Auto-generated method stub
+    public boolean update(Experience experience) {
+        if (!cDaoImpl.update(experience)) return false;
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(UPDATE_BY_ID)
+        ) {
+            pst.setInt(1, experience.getExpInYear());
+            pst.setString(2, experience.getProSkill());
+            pst.setString(3, experience.getCandidateId());
 
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println(
+                    "Something errors, cann't insert into Experience Table"
+                );
+                return false;
+            }
+            System.out.println(
+                "Inserted " + count + " row into Experience Table"
+            );
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

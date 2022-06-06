@@ -4,6 +4,7 @@ import static fa.academy.config.DatabaseConfig.getConnection;
 
 import fa.academy.dao.Dao;
 import fa.academy.entity.Certification;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -14,8 +15,20 @@ public class CertificationDaoImpl implements Dao<Certification> {
         "SELECT * FROM Certification WHERE CertificationID = ?";
     private static final String FIND_ALL = "SELECT * FROM Certification";
 
+    private static final String UPDATE_BY_ID =
+        "UPDATE Certification SET CertificationName = ?, CertificationRank = ?, CertificationDate = ? WHERE CertificationID = ?";
+
+    private static final String DELETE_BY_ID =
+        "DELETE FROM Certification WHERE CertificationID = ?";
+
     private static final String FIND_BY_CID =
         "SELECT * FROM Certification WHERE CandidateID = ?";
+
+    private static final String DELETE_BY_CID =
+        "DELETE FROM Certification WHERE CandidateID = ?";
+
+    private static final String GET_LAST_ID =
+        "SELECT TOP(1) CertificationID FROM Certification ORDER BY CertificationID DESC";
 
     private static final CertificationDaoImpl CERT_DAO_IMPL = new CertificationDaoImpl();
 
@@ -138,20 +151,97 @@ public class CertificationDaoImpl implements Dao<Certification> {
     }
 
     @Override
-    public void save(Certification t) {
+    public boolean save(Certification t) {
         // TODO Auto-generated method stub
-
+        return false;
     }
 
     @Override
-    public void update(Certification t) {
-        // TODO Auto-generated method stub
+    public boolean update(Certification cerf) {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(UPDATE_BY_ID)
+        ) {
+            pst.setString(1, cerf.getCertificationName());
+            pst.setString(2, cerf.getCertificationRank());
+            pst.setDate(3, Date.valueOf(cerf.getCertificationDate()));
+            pst.setString(4, cerf.getCertificationId());
 
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println(
+                    "Something errors, cann't insert into Certification Table"
+                );
+                return false;
+            }
+            System.out.println(
+                "Inserted " + count + " row into Certification Table"
+            );
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
-    public void delete(String t) {
-        // TODO Auto-generated method stub
+    public void delete(String id) {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(DELETE_BY_ID)
+        ) {
+            pst.setString(1, id);
 
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println("CERF-ID is not found");
+                return;
+            }
+            System.out.println(
+                "Deleted " + count + " row in Certification Table"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteByCandidateId(String cId) {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(DELETE_BY_CID)
+        ) {
+            pst.setString(1, cId);
+
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println("CERF-ID is not found");
+                return;
+            }
+            System.out.println(
+                "Deleted " + count + " row in Certification Table"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getLastId() {
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(GET_LAST_ID);
+            ResultSet rs = pst.executeQuery();
+        ) {
+            if (!rs.next()) {
+                return "CERF000";
+            }
+
+            return rs.getString("CertificationID");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

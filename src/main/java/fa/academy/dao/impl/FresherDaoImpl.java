@@ -5,6 +5,7 @@ import static fa.academy.config.DatabaseConfig.getConnection;
 import fa.academy.dao.Dao;
 import fa.academy.entity.Candidate;
 import fa.academy.entity.Fresher;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -14,6 +15,9 @@ public class FresherDaoImpl implements Dao<Fresher> {
     private static final String FIND_BY_ID =
         "SELECT * FROM Fresher WHERE FresherID = ?";
     private static final String FIND_ALL = "SELECT * FROM Fresher";
+
+    private static final String UPDATE_BY_ID =
+        "UPDATE Fresher SET Education = ?, GraduateRank = ?, GraduateDate = ? WHERE FresherID = ?";
 
     private CandidateDaoImpl cDaoImpl = CandidateDaoImpl.getInstance();
     private static final FresherDaoImpl F_DAO_IMPL = new FresherDaoImpl();
@@ -94,7 +98,7 @@ public class FresherDaoImpl implements Dao<Fresher> {
 
             while (rs.next()) {
                 String id = rs.getString("FresherID");
-                Candidate candidate = CandidateDaoImpl.getInstance().find(id);
+                Candidate candidate = cDaoImpl.find(id);
                 Fresher fresher = new Fresher(candidate);
                 fresher.setEducation(rs.getString("Education"));
                 fresher.setGraduationRank(rs.getString("GraduateRank"));
@@ -113,15 +117,37 @@ public class FresherDaoImpl implements Dao<Fresher> {
     }
 
     @Override
-    public void save(Fresher t) {
+    public boolean save(Fresher t) {
         // TODO Auto-generated method stub
-
+        return false;
     }
 
     @Override
-    public void update(Fresher t) {
-        // TODO Auto-generated method stub
+    public boolean update(Fresher fresher) {
+        if (!cDaoImpl.update(fresher)) return false;
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(UPDATE_BY_ID)
+        ) {
+            pst.setString(1, fresher.getEducation());
+            pst.setString(2, fresher.getGraduationRank());
+            pst.setDate(3, Date.valueOf(fresher.getGraduationDate()));
+            pst.setString(4, fresher.getCandidateId());
 
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println(
+                    "Something errors, cann't insert into Fresher Table"
+                );
+                return false;
+            }
+            System.out.println("Inserted " + count + " row into Fresher Table");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

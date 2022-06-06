@@ -3,10 +3,12 @@ package fa.academy.controller;
 import static fa.academy.utils.GlobalScanner.consoleScanner;
 
 import fa.academy.dao.impl.CandidateDaoImpl;
+import fa.academy.dao.impl.CertificationDaoImpl;
 import fa.academy.dao.impl.ExperienceDaoImpl;
 import fa.academy.dao.impl.FresherDaoImpl;
 import fa.academy.dao.impl.InternDaoImpl;
 import fa.academy.entity.Candidate;
+import fa.academy.entity.Certification;
 import fa.academy.entity.Experience;
 import fa.academy.entity.Fresher;
 import fa.academy.entity.Intern;
@@ -20,6 +22,7 @@ public class FindController {
     private List<Experience> experienceList;
     private List<Fresher> fresherList;
     private List<Intern> internList;
+    private List<Certification> cerfList;
 
     public Candidate findCandidate() {
         System.out.println("Enter 'X' or 'x' to back to Main menu.");
@@ -32,12 +35,12 @@ public class FindController {
                 return null;
             }
 
-            if (Validator.validateCandidateId(input)) {
-                id = input;
+            try {
+                id = Validator.validateCandidateId(input);
                 break;
+            } catch (Exception e) {
+                System.out.print("Invalid ID, enter again: ");
             }
-
-            System.out.print("Invalid ID, enter again: ");
         }
         Candidate candidate = CandidateDaoImpl.getInstance().find(id);
 
@@ -74,22 +77,92 @@ public class FindController {
         this.fresherList = FresherDaoImpl.getInstance().findAll();
         this.internList = InternDaoImpl.getInstance().findAll();
 
-        TablePrinter ePrinter = new TablePrinter(this.experienceList);
-        TablePrinter fPrinter = new TablePrinter(this.fresherList);
-        TablePrinter iPrinter = new TablePrinter(this.internList);
         System.out.println("\nEXPERIENCE");
         if (this.experienceList == null) {
-            System.out.println("EXPERIENCE table is emply.");
-        } else ePrinter.print();
+            System.out.println("EXPERIENCE table is empty.");
+        } else {
+            TablePrinter ePrinter = new TablePrinter(this.experienceList);
+            ePrinter.print();
+        }
 
         System.out.println("\nFRESHER");
         if (this.fresherList == null) {
-            System.out.println("FRESHER table is emply.");
-        } else fPrinter.print();
+            System.out.println("FRESHER table is empty.");
+        } else {
+            TablePrinter fPrinter = new TablePrinter(this.fresherList);
+            fPrinter.print();
+        }
 
         System.out.println("\nINTERN");
         if (this.internList == null) {
-            System.out.println("INTERN table is emply.");
-        } else iPrinter.print();
+            System.out.println("INTERN table is empty.");
+        } else {
+            TablePrinter iPrinter = new TablePrinter(this.internList);
+            iPrinter.print();
+        }
+    }
+
+    public Certification findCerf() {
+        System.out.println("Enter 'X' or 'x' to back to Main menu.");
+        System.out.print("Enter valid ID, Example 'CERF001': ");
+        String id = null;
+        while (true) {
+            String input = consoleScanner.nextLine();
+
+            if (input.equals("X") || input.equals("x")) {
+                return null;
+            }
+
+            try {
+                id = Validator.validateCerfId(input);
+                break;
+            } catch (Exception e) {
+                System.out.print("Invalid ID, enter again: ");
+            }
+        }
+
+        Certification certification = CertificationDaoImpl
+            .getInstance()
+            .find(id);
+
+        if (certification == null) {
+            System.out.println("Id is not found");
+            return null;
+        }
+
+        TablePrinter tablePrinter = new TablePrinter(certification);
+        tablePrinter.print();
+        return certification;
+    }
+
+    public String findCerfbyCandidateId() {
+        System.out.println("Enter 'X' or 'x' to back to Main menu.");
+        System.out.print("Enter valid ID, Example 'CDD001': ");
+        String id = null;
+        while (true) {
+            String input = consoleScanner.nextLine();
+
+            if (input.equals("X") || input.equals("x")) {
+                return null;
+            }
+
+            try {
+                id = Validator.validateCandidateId(input);
+                break;
+            } catch (Exception e) {
+                System.out.print("Invalid ID, enter again: ");
+            }
+        }
+        this.cerfList =
+            CertificationDaoImpl.getInstance().findByCandidateId(id);
+        if (this.cerfList == null) {
+            System.out.println(
+                "Id is not found or this candidate doesn't have any CERF"
+            );
+            return null;
+        }
+        TablePrinter tablePrinter = new TablePrinter(this.cerfList);
+        tablePrinter.print();
+        return id;
     }
 }

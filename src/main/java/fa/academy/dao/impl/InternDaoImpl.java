@@ -15,6 +15,9 @@ public class InternDaoImpl implements Dao<Intern> {
         "SELECT * FROM Intern WHERE InternID = ?";
     private static final String FIND_ALL = "SELECT * FROM Intern";
 
+    private static final String UPDATE_BY_ID =
+        "UPDATE Intern SET University = ?, Major = ?, Semester = ? WHERE InternID = ?";
+
     private CandidateDaoImpl cDaoImpl = CandidateDaoImpl.getInstance();
     private static final InternDaoImpl I_DAO_IMPL = new InternDaoImpl();
 
@@ -92,7 +95,7 @@ public class InternDaoImpl implements Dao<Intern> {
 
             while (rs.next()) {
                 String id = rs.getString("InternID");
-                Candidate candidate = CandidateDaoImpl.getInstance().find(id);
+                Candidate candidate = cDaoImpl.find(id);
                 Intern intern = new Intern(candidate);
                 intern.setUniversity(rs.getString("University"));
                 intern.setMajor(rs.getString("Major"));
@@ -109,13 +112,38 @@ public class InternDaoImpl implements Dao<Intern> {
     }
 
     @Override
-    public void save(Intern t) {
+    public boolean save(Intern t) {
         // TODO Auto-generated method stub
-
+        return false;
     }
 
     @Override
-    public void update(Intern t) {}
+    public boolean update(Intern intern) {
+        if (!cDaoImpl.update(intern)) return false;
+        try (
+            PreparedStatement pst = getConnection()
+                .prepareStatement(UPDATE_BY_ID)
+        ) {
+            pst.setString(1, intern.getUniversity());
+            pst.setString(2, intern.getMajor());
+            pst.setInt(3, intern.getSemester());
+            pst.setString(4, intern.getCandidateId());
+
+            int count = pst.executeUpdate();
+
+            if (count < 1) {
+                System.out.println(
+                    "Something errors, cann't insert into Intern Table"
+                );
+                return false;
+            }
+            System.out.println("Inserted " + count + " row into Intern Table");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     @Override
     public void delete(String id) {

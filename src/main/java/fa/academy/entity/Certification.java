@@ -1,8 +1,16 @@
 package fa.academy.entity;
 
+import fa.academy.utils.common.TablePrintable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class Certification {
+public class Certification implements TablePrintable {
+
+    private static List<String> columns = new ArrayList<>(
+        Arrays.asList("CERF-ID", "CERF-Name", "CERF-Rank", "CERF-Date")
+    );
 
     private String CertificationId;
     private String CertificationName;
@@ -70,5 +78,22 @@ public class Certification {
             CertificationDate +
             "]"
         );
+    }
+
+    @Override
+    public List<String> getColumns() {
+        return columns;
+    }
+
+    @Override
+    public List<ArrayList<String>> getRecordData() {
+        List<ArrayList<String>> recordList = new ArrayList<>();
+        ArrayList<String> record = new ArrayList<>();
+        record.add(CertificationId);
+        record.add(CertificationName);
+        record.add(CertificationRank);
+        record.add(CertificationDate.toString());
+        recordList.add(record);
+        return recordList;
     }
 }
