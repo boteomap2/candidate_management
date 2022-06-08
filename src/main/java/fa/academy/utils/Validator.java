@@ -2,6 +2,7 @@ package fa.academy.utils;
 
 import fa.academy.custom.DateException;
 import fa.academy.custom.EmailException;
+import fa.academy.utils.Enum.CandidateType;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import org.apache.commons.validator.routines.DateValidator;
@@ -14,7 +15,10 @@ public class Validator {
     private static final String CERF_ID_REGEX = "^(CERF)\\d{3}";
 
     public static int validateNumber(String input) throws Exception {
-        return IntegerValidator.getInstance().validate(input);
+        if (!IntegerValidator.getInstance().isValid(input)) {
+            throw new Exception("Not a number");
+        }
+        return Integer.parseInt(input);
     }
 
     public static String validateCandidateId(String input) throws Exception {
@@ -38,14 +42,14 @@ public class Validator {
     public static LocalDate validateDate(String dob) throws DateException {
         LocalDate localDate;
 
-        if (DateValidator.getInstance().isValid(dob, "yyyy-MM-dd")) {
+        if (DateValidator.getInstance().isValid(dob, "yyyy-M-d")) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
-                "yyyy-MM-dd"
+                "yyyy-M-d"
             );
             localDate = LocalDate.parse(dob, formatter);
-        } else if (DateValidator.getInstance().isValid(dob, "dd/MM/yyyy")) {
+        } else if (DateValidator.getInstance().isValid(dob, "d/M/yyyy")) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
-                "dd/MM/yyyy"
+                "d/M/yyyy"
             );
             localDate = LocalDate.parse(dob, formatter);
         } else throw new DateException("Invalid date format.");
@@ -66,5 +70,14 @@ public class Validator {
             !EmailValidator.getInstance().isValid(email)
         ) throw new EmailException("Invalid Email.");
         return email;
+    }
+
+    public static CandidateType validateCandidateType(String input)
+        throws Exception {
+        int num = validateNumber(input);
+        if (!(num >= 0 && num <= 2)) {
+            throw new Exception("Number not in range");
+        }
+        return CandidateType.values()[num];
     }
 }

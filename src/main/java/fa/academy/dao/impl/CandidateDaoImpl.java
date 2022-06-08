@@ -9,9 +9,18 @@ import fa.academy.utils.Enum.CandidateType;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.logging.log4j.*;
 
 public class CandidateDaoImpl implements Dao<Candidate> {
+
+    private static Logger logger = LogManager.getLogger(
+        CandidateDaoImpl.class.getName()
+    );
 
     private static final String FIND_BY_ID =
         "SELECT * FROM Candidate WHERE CandidateID = ?";
@@ -26,6 +35,12 @@ public class CandidateDaoImpl implements Dao<Candidate> {
 
     private static final String GET_LAST_ID =
         "SELECT TOP(1) CandidateID FROM Candidate ORDER BY CandidateID DESC";
+
+    private static final String INSERT =
+        "INSERT INTO Candidate VALUES (?, ?, ?, ?, ?, ?)";
+
+    private static final String COUNT =
+        "SELECT COUNT(CandidateID) as [Count] FROM Candidate";
 
     private static final CandidateDaoImpl C_DAO_IMPL = new CandidateDaoImpl();
 
@@ -66,8 +81,10 @@ public class CandidateDaoImpl implements Dao<Candidate> {
             candidate.setCertificationList(certificationList);
 
             rs.close();
+            logger.info("Query data id " + id + " in Candidate table");
             return candidate;
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -102,18 +119,96 @@ public class CandidateDaoImpl implements Dao<Candidate> {
 
                 candidateList.add(candidate);
             }
-
+            logger.info("Query all data in Candidate table");
             return candidateList;
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
     @Override
-    public boolean save(Candidate t) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean save(Candidate candidate) {
+        try (
+            PreparedStatement pst = getConnection().prepareStatement(INSERT);
+        ) {
+            pst.setString(1, candidate.getCandidateId());
+            pst.setString(2, candidate.getFullname());
+            pst.setDate(3, Date.valueOf(candidate.getBirthday()));
+            pst.setString(4, candidate.getPhone());
+            pst.setString(5, candidate.getEmail());
+            pst.setInt(6, candidate.getCandidateType().getNumber());
+
+            int count = pst.executeUpdate();
+
+            if (count < 1) throw new Exception(
+                "Error on Insert new row Candidate Table"
+            );
+            logger.info("Inserted " + count + " row to Candidate table");
+            System.out.println("Inserted " + count + " row to Candidate table");
+            return true;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void saveBatch(List<Candidate> candidateList) {
+        try (
+            PreparedStatement pst = getConnection().prepareStatement(INSERT);
+        ) {
+            getConnection().setAutoCommit(false);
+            Map<String, List<Certification>> map = new HashMap<>();
+            for (Candidate candidate : candidateList) {
+                if (candidate.getCertificationList().size() != 0) {
+                    map.put(
+                        candidate.getCandidateId(),
+                        candidate.getCertificationList()
+                    );
+                }
+                pst.setString(1, candidate.getCandidateId());
+                pst.setString(2, candidate.getFullname());
+                pst.setDate(3, Date.valueOf(candidate.getBirthday()));
+                pst.setString(4, candidate.getPhone());
+                pst.setString(5, candidate.getEmail());
+                pst.setInt(6, candidate.getCandidateType().getNumber());
+
+                pst.addBatch();
+            }
+
+            int count[] = pst.executeBatch();
+
+            if (count.length < 1) throw new Exception(
+                "Error on Insert new row Candidate Table"
+            );
+            logger.info("Inserted " + count.length + " row to Candidate table");
+            System.out.println(
+                "Inserted " + count.length + " row to Candidate table"
+            );
+
+            for (String id : map.keySet()) {
+                List<Certification> certList = map.get(id);
+                CertificationDaoImpl.getInstance().saveBatch(certList, id);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+            try {
+                getConnection().rollback();
+            } catch (SQLException e1) {
+                logger.error(e.getMessage());
+                e1.printStackTrace();
+            }
+        } finally {
+            try {
+                getConnection().setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -132,15 +227,17 @@ public class CandidateDaoImpl implements Dao<Candidate> {
 
             if (count < 1) {
                 System.out.println(
-                    "Something errors, cann't insert into Candidate Table"
+                    "Something errors, cann't update Candidate Table"
                 );
                 return false;
             }
+            logger.info("Updated " + count + " row into Candidate Table");
             System.out.println(
-                "Inserted " + count + " row into Candidate Table"
+                "Updated " + count + " row into Candidate Table"
             );
             return true;
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -159,8 +256,10 @@ public class CandidateDaoImpl implements Dao<Candidate> {
                 System.out.println("Id is not found, no row is deleted.");
                 return;
             }
+            logger.info("The candidate with ID: " + id + " is deleted");
             System.out.println("The candidate with ID: " + id + " is deleted");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -172,13 +271,34 @@ public class CandidateDaoImpl implements Dao<Candidate> {
             ResultSet rs = pst.executeQuery();
         ) {
             if (!rs.next()) {
+                logger.info("Get last candidate ID: CDD000");
                 return "CDD000";
             }
-
+            logger.info(
+                "Get last candidate ID: " + rs.getString("CandidateID")
+            );
             return rs.getString("CandidateID");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public int getCount() {
+        try (
+            PreparedStatement pst = getConnection().prepareStatement(COUNT);
+            ResultSet rs = pst.executeQuery();
+        ) {
+            if (!rs.next()) {
+                return 0;
+            }
+            logger.info("Get candidate count: " + rs.getInt("Count"));
+            return rs.getInt("Count");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+            return 0;
         }
     }
 }

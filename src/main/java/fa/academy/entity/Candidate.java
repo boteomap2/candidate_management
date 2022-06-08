@@ -8,6 +8,8 @@ import java.util.List;
 
 public class Candidate implements TablePrintable {
 
+    public static int candidateCount = 0;
+
     private String candidateId;
     private String fullname;
     private LocalDate birthday;

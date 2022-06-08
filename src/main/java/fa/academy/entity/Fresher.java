@@ -163,7 +163,9 @@ public class Fresher extends Candidate {
                 record.add(this.graduationRank);
                 record.add(this.graduationDate.toString());
             }
-            if (certificationList == null) break;
+            if (
+                certificationList == null || certificationList.size() == 0
+            ) break;
             record.add(certificationList.get(i).getCertificationId());
             record.add(certificationList.get(i).getCertificationName());
             record.add(certificationList.get(i).getCertificationRank());

@@ -158,7 +158,9 @@ public class Experience extends Candidate {
                 record.add(Integer.toString(expInYear));
                 record.add(proSkill);
             }
-            if (certificationList == null) break;
+            if (
+                certificationList == null || certificationList.size() == 0
+            ) break;
             record.add(certificationList.get(i).getCertificationId());
             record.add(certificationList.get(i).getCertificationName());
             record.add(certificationList.get(i).getCertificationRank());

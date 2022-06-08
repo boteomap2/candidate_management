@@ -285,4 +285,56 @@ public class EditController {
 
         CertificationDaoImpl.getInstance().update(certification);
     }
+
+    public void editCertificationWithRS() {
+        Certification certification = findController.findCerf();
+        if (certification == null) return;
+        System.out.println("\tNote #1: Column ID can't be changed");
+        System.out.println(
+            "\tNote #2: Press enter to skip the column you don't want to update"
+        );
+        System.out.println(
+            "\tNote #3: Date format can be 'dd/MM/yyyy' or 'yyyy-MM-dd'"
+        );
+        System.out.println("\tNote #4: Enter 'X' or 'x' to stop exit");
+
+        for (String header : this.cerfHeader) {
+            while (true) {
+                System.out.print(header + ": ");
+                boolean isNextHeader = false;
+                String input = consoleScanner.nextLine();
+
+                if (input.equals("X") || input.equals("x")) {
+                    return;
+                }
+
+                if (input.isEmpty()) break;
+
+                try {
+                    switch (header) {
+                        case "CERF-Name":
+                            certification.setCertificationName(input);
+                            isNextHeader = true;
+                            break;
+                        case "CERF-Rank":
+                            certification.setCertificationRank(input);
+                            isNextHeader = true;
+                            break;
+                        case "CERF-Date":
+                            certification.setCertificationDate(
+                                Validator.validateDate(input)
+                            );
+                            isNextHeader = true;
+                            break;
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+
+                if (isNextHeader) break;
+            }
+        }
+
+        CertificationDaoImpl.getInstance().updateWithResultSet(certification);
+    }
 }
